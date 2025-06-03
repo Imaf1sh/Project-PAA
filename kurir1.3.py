@@ -48,7 +48,7 @@ DIR_ORDER = ["right", "down", "left", "up"]
 # Load map
 def load_map():
     global map_image
-    map_image = pygame.image.load("assets/map.jpg").convert()
+    map_image = pygame.image.load("assets/map.png").convert()
 
 load_map()
 
