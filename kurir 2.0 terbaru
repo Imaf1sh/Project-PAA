@@ -2,13 +2,24 @@ import pygame
 import sys
 import random
 import heapq
+import pygame_gui
 
+# Inisialisasi
 pygame.init()
 WIDTH, HEIGHT = 1200, 800
 GRID_SIZE = 20
 ROWS, COLS = HEIGHT // GRID_SIZE, WIDTH // GRID_SIZE
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Smart Kurir - A* Pathfinding")
+pygame.display.set_caption("Smart Kurir - A* + GUI")
+
+# UI Manager
+manager = pygame_gui.UIManager((WIDTH, HEIGHT))
+
+# Tombol GUI
+button_start = pygame_gui.elements.UIButton(pygame.Rect((20, 20), (100, 40)), 'Mulai A*', manager)
+button_acak_kurir = pygame_gui.elements.UIButton(pygame.Rect((140, 20), (120, 40)), 'Acak Kurir', manager)
+button_acak_tujuan = pygame_gui.elements.UIButton(pygame.Rect((280, 20), (140, 40)), 'Acak Tujuan', manager)
+button_load_peta = pygame_gui.elements.UIButton(pygame.Rect((440, 20), (120, 40)), 'Load Peta', manager)
 
 # Ukuran gambar
 GAMBAR_UKURAN = (GRID_SIZE, GRID_SIZE)
@@ -83,6 +94,7 @@ def draw_scene():
     screen.blit(map_surface, (0, 0))
     screen.blit(flag_img, flag_pos)
     screen.blit(kurir_imgs[kurir_dir], kurir_pos)
+    manager.draw_ui(screen)
     pygame.display.flip()
 
 def update_direction(target):
@@ -113,29 +125,34 @@ def load_map(path):
     except:
         print("Gagal memuat peta.")
 
+# Main loop
 clock = pygame.time.Clock()
-print("SPACE = Kurir jalan otomatis (A*)")
+print("Klik tombol GUI untuk aksi")
 
 while True:
-    screen.fill((0,0,0))
+    time_delta = clock.tick(60) / 1000.0
+    screen.fill((0, 0, 0))
     draw_scene()
 
-    for e in pygame.event.get():
-        if e.type == pygame.QUIT:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif e.type == pygame.KEYDOWN:
-            if e.key == pygame.K_SPACE:
+
+        manager.process_events(event)
+
+        if event.type == pygame_gui.UI_BUTTON_PRESSED:
+            if event.ui_element == button_start:
                 auto_move = True
                 grid = grid_from_map()
                 start = (kurir_pos[0] // GRID_SIZE, kurir_pos[1] // GRID_SIZE)
                 goal = (flag_pos[0] // GRID_SIZE, flag_pos[1] // GRID_SIZE)
                 path = astar(grid, start, goal)
-            elif e.key == pygame.K_r:
+            elif event.ui_element == button_acak_kurir:
                 kurir_pos = acak_posisi()
-            elif e.key == pygame.K_t:
+            elif event.ui_element == button_acak_tujuan:
                 flag_pos = acak_posisi()
-            elif e.key == pygame.K_l:
+            elif event.ui_element == button_load_peta:
                 load_map("petaku.png")
 
     if auto_move and path:
@@ -145,4 +162,4 @@ while True:
         if not path:
             auto_move = False
 
-    clock.tick(10)
+    manager.update(time_delta)
